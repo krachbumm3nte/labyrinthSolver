@@ -1,38 +1,90 @@
 from PIL import Image
+import numpy as np
+
 import Node
 import Point
 
 
-class Maze:
-
+class Maze(object):
 
     def __init__(self):
 
-        def indextopoint(i):
-            return Point.Point(i%width, int(i/height))
+        image = Image.open('simplemaze.png', 'r')
 
-        nodes = []
+        self.pixels = list(image.getdata())
 
-        im = Image.open('simplemaze.png', 'r')
+        self.width = image.width
+        self.height = image.height
+        self.size = self.width * self.height
+        print("maze of size: ", self.width, "x", self.height)
 
-        pixels = list(im.getdata())
-        width = im.width
+        # determining validity of the maze
+        if not self.isvalid():
+            print("invalid maze, exiting...")
+            print("hint:")
+            print("\ta valid maze consists of white pixels graphing the path, and black pixels displaying the walls.")
+            print("\ta valid maze has a one pixel wide layer of wall around it, leaving only two gaps for "
+                  "entry and exit in the first and last row respectively.")
+            exit()
 
-        height = im.height
+    def free(self, x: int) -> bool:
+        return self.pixels[x][0] != 0
 
-        print(width, "x", height)
+    def indextopoint(self, i):
+        return Point.Point(i % self.width, int(i / self.height))
 
-        for i in range(width):
-            if free(pixels[i]):
-                print("startpoint at: ", indextopoint(i))
-                break
+    def isvalid(self):
+        entriesfound = 0
+        exitsfound = 0
+        for i in range(self.width):
+            if self.free(i): entriesfound = entriesfound + 1
+            if entriesfound > 1: return False
 
-        for i in range(width, width * (height - 1)):
-            #print(i-width, i, i+width)
-            if free(pixels[i]) and (free(pixels[i+width]) or free(pixels[i-width])) and (free(pixels[i-1]) or free(pixels[i+1])):
-                print("node at ", indextopoint(i))
+        for i in range(self.width * (self.height - 1), self.width * self.height):
+            if self.free(i): exitsfound = exitsfound + 1
+            if exitsfound > 1: return False
 
+        for i in range(self.height):
+            if self.free(i * self.width) or self.free(i * self.width + self.width - 1): return False
 
-def free(x):
-    return x[0] > 0
+        return entriesfound == 1 and exitsfound == 1
 
+    def findstart(self) -> int:
+        for i in range(self.width):
+            if self.free(i):
+                print("start at %d", i)
+                return i
+
+    def findgoal(self) -> int:
+        for i in range(self.width * (self.height - 1), self.width * self.height):
+            if self.free(i):
+                print("goal at $d", i)
+                return i
+
+    def moveup(self, index: int) -> int:
+        return index - self.width
+
+    def movedown(self, index: int) -> int:
+        return index + self.width
+
+    def moveleft(self, index: int) -> int:
+        return index - 1
+
+    def moveright(self, index: int) -> int:
+        return index + 1
+
+    def shouldbenode(self, i: int) -> bool:
+        return (self.free(self.moveleft(i)) or self.free(self.moveright(i))) and (
+                self.free(self.moveup(i)) or self.free(self.movedown(i))) and self.free(i)
+
+    def getavailabledirections(self, index: int):
+        directions = []
+        if self.free(self.moveup(index)):
+            directions.append(0)
+        if self.free(self.moveright(index)):
+            directions.append(1)
+        if self.free(self.movedown(index)):
+            directions.append(2)
+        if self.free(self.movedown(index)):
+            directions.append(3)
+        return directions
