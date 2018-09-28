@@ -21,18 +21,21 @@ class Solver(object):
         currentindex = m.findstart()
         direction = 2
         while nodecounter < 4:
-            print("currently at %d", currentindex)
+            print("currently at: ", self.indextopoint(currentindex))
             nodecounter = nodecounter + 1
             nodes.append(Node.Node(currentindex, self.oppositedirection(direction)))
-            currentindex = self.moveUntilNewNode(currentindex, m.getavailabledirections(currentindex)[1])
+            currentindex = self.moveUntilNewNode(currentindex, direction)
+
 
         print(nodes)
 
     def moveUntilNewNode(self, index: int, direction: int) -> int:
         while True:
-            print("moving into direction ", direction, " at point ", self.m.indextopoint(index))
+            print("moving into direction ", direction, " at point ", self.indextopoint(index))
             index = self.movedirectional(index, direction)
-            if self.m.shouldbenode(index): return index
+            if self.m.shouldbenode(index):
+                print("new node at index ", index)
+                return index
 
     moveup = lambda self, index: index - self.width
     movedown = lambda self, index: index + self.width
@@ -59,5 +62,7 @@ class Solver(object):
         elif direction == 3:
             return self.moveleft(i)
 
+    def indextopoint(self, i: int) -> Point:
+        return Point.Point(i%self.width, int(i/self.height))
 
 s1 = Solver()
