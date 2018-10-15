@@ -1,17 +1,22 @@
-from PIL import Image
-import Node
-import Maze
-import Point
+import maze
+import point
+import node
 
 
 class Solver(object):
-    m = Maze.Maze()
+    m = maze.Maze()
     width = m.width
     height = m.height
-    start = Point.Point(m.findstart(), 0)
-    goal = Point.Point(m.findgoal(), height)
+    start = point.Point(m.findstart(), 0)
+    goal = point.Point(m.findgoal(), height)
 
     def __init__(self):
+        print(self.m.free(9))
+        print(self.indextopoint(27))
+        print(self.pointtoindex(11, 1))
+        i = self.pointtoindex(13, 2)
+        print(self.m.free(i))
+        print(self.m.shouldbenode(i))
         self.solve(self.m)
 
     def solve(self, m):
@@ -20,12 +25,12 @@ class Solver(object):
         nodecounter = 0
         currentindex = m.findstart()
         direction = 2
-        while nodecounter < 4:
+        while nodecounter < 1:
             print("currently at: ", self.indextopoint(currentindex))
-            nodecounter = nodecounter + 1
-            nodes.append(Node.Node(currentindex, self.oppositedirection(direction)))
+            n = node.Node(currentindex, self.oppositedirection(direction))
+            nodes.append(n)
             currentindex = self.moveUntilNewNode(currentindex, direction)
-
+            nodecounter = nodecounter + 1
 
         print(nodes)
 
@@ -62,7 +67,11 @@ class Solver(object):
         elif direction == 3:
             return self.moveleft(i)
 
-    def indextopoint(self, i: int) -> Point:
-        return Point.Point(i%self.width, int(i/self.height))
+    def indextopoint(self, i: int) -> point:
+        return point.Point(i % self.width, int(i / self.height))
+
+    def pointtoindex(self, x: int, y: int) -> int:
+        return y * self.width + x
+
 
 s1 = Solver()
