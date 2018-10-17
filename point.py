@@ -1,3 +1,4 @@
+# too lazy to look up a proper one
 class Point:
 
     def __init__(self, x, y):

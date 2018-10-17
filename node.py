@@ -1,12 +1,13 @@
-import maze
+""" a node class that represents a key point inside the maze
+    currently holds information about its position (as index) and the distance to the startpoint
+    might eventually be used to create an actual graph, who knows?
+"""
 
 
 class Node:
-    def __init__(self, position : int, distance : int):
+    def __init__(self, position: int, distance: int):
         self.position = position
         self.distance = distance
-
-
 
     def __str__(self):
         return f"[Node at :{self.position}, distance: {self.distance}]"

@@ -3,20 +3,21 @@ import point
 import node
 
 
+# a class that implements the main functionality of iterating through a maze, until the exit is found
 class Solver(object):
-    m = maze.Maze()
-    width = m.width
-    height = m.height
-    start = node.Node(m.findstart(),0)
-    goal = node.Node(m.findgoal(), -1)
-    knownNodes = []
-    borderRegion = []
 
     def __init__(self):
-        i = self.pointtoindex(13, 2)
-        self.solve(self.m)
+        self.m = maze.Maze()
+        self.width = self.m.width
+        self.height = self.m.height
+        self.start = node.Node(self.m.findstart(), 0)
+        self.goal = node.Node(self.m.findgoal(), -1)
+        self.knownNodes = []
+        self.borderRegion = []
 
-    def solve(self, m):
+        self.solve()
+
+    def solve(self):
 
         self.borderRegion.append(self.start)
 
@@ -28,26 +29,34 @@ class Solver(object):
             n = self.pickNextNode()
             self.expand(n)
 
-
-
-    def moveUntilNewNode(self, index: int, distance: int, direction: int) -> node.Node:
+    def moveuntilnewnode(self, index: int, distance: int, direction: int) -> node.Node:
         addeddistance = 0
         while True:
-            if index < 0: return self.start
+            if index < 0:
+                return self.start
             index = self.movedirectional(index, direction)
             addeddistance = addeddistance + 1
             if self.m.shouldbenode(index):
                 print("new node found at point ", self.indextopoint(index))
                 return node.Node(index, distance + addeddistance)
 
+    def moveup(self, index) -> int:
+        return index - self.width
 
-    moveup = lambda self, index: index - self.width
-    movedown = lambda self, index: index + self.width
-    moveleft = lambda self, index: index - 1
-    moveright = lambda self, index: index + 1
+    def movedown(self, index) -> int:
+        return index + self.width
 
-    nextdirection = lambda self, direction: (direction + 1) % 4
-    oppositedirection = lambda self, direction: (direction + 2) % 4
+    def moveleft(self, index) -> int:
+        return index - 1
+
+    def moveright(self, index) -> int:
+        return index + 1
+
+    def nextdirection(self, direction) -> int:
+        return (direction + 1) % 4
+
+    def oppositedirection(self, direction) -> int:
+        return (direction + 2) % 4
 
     def previousdirection(self, direction: int) -> int:
         newdir = direction - 1
@@ -69,17 +78,12 @@ class Solver(object):
     def indextopoint(self, i: int) -> point:
         return point.Point(i % self.width, int(i / self.height))
 
-    def pointtoindex(self, x: int, y: int) -> int:
-        return y * self.width + x
-
-
-
     def expand(self, n: node):
         print(f"expanding node at {self.indextopoint(n.position)}")
         index = n.position
         directions = self.m.getavailabledirections(index)
         for direction in directions:
-            n1 = self.moveUntilNewNode(index,n.distance,direction)
+            n1 = self.moveuntilnewnode(index, n.distance, direction)
             if self.nodeIsUnknown(n1):
                 if n1.__eq__(self.goal):
                     x = n1.distance
@@ -92,13 +96,13 @@ class Solver(object):
                     exit()
                 self.borderRegion.append(n1)
 
-
     def pickNextNode(self):
-        n= self.borderRegion.pop(-1)
+        n = self.borderRegion.pop(-1)
         self.knownNodes.append(n)
         return n
 
     def nodeIsUnknown(self, n: node):
         return not self.borderRegion.__contains__(n) and not self.knownNodes.__contains__(n)
+
 
 s1 = Solver()

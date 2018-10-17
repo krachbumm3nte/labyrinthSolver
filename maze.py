@@ -1,9 +1,10 @@
 from PIL import Image
 import point
 
-
+# a class to represent a maze that was generated from a .png image
 class Maze:
 
+    # initializes the maze, setting variables and decoding the input image to a list of rgb values
     def __init__(self):
 
         image = Image.open('simplemaze.png', 'r')
@@ -12,7 +13,6 @@ class Maze:
 
         self.width = image.width
         self.height = image.height
-        self.size = self.width * self.height
         print("maze of size: ", self.width, "x", self.height)
 
         # determining validity of the maze
@@ -24,12 +24,15 @@ class Maze:
                   "entry and exit in the first and last row respectively.")
             exit()
 
+    # checks if a given index is a field (true) or a wall (false)
     def free(self, x: int) -> bool:
         return self.pixels[x][0] != 0 if 0 < x < (self.width * self.height) else False
 
+    # transforms an index on the array to a coordinate point
     def indextopoint(self, i):
         return point.Point(i % self.width, int(i / self.height))
 
+    # checks validity of the maze
     def isvalid(self):
         entriesfound = 0
         exitsfound = 0
@@ -46,12 +49,14 @@ class Maze:
 
         return entriesfound == 1 and exitsfound == 1
 
+    # returns the index of the mazes entrance
     def findstart(self) -> int:
         for i in range(self.width):
             if self.free(i):
                 print("start at {}".format(self.indextopoint(i)))
                 return i
 
+    # returns the index of the mazes exit
     def findgoal(self) -> int:
         for i in range(self.width * (self.height - 1), self.width * self.height):
             if self.free(i):
@@ -70,11 +75,12 @@ class Maze:
     def moveright(self, index: int) -> int:
         return index + 1
 
+    # determins if a node should be created at index i
     def shouldbenode(self, i: int) -> bool:
         directions = self.getavailabledirections(i)
-        return len(directions) == 1 or sum(directions)% 2 != 0 or len(directions) > 2
+        return len(directions) == 1 or sum(directions) % 2 != 0 or len(directions) > 2
 
-
+    # returns all of the directions available at index
     def getavailabledirections(self, index: int):
         directions = []
         if self.free(self.moveup(index)):
