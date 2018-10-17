@@ -7,40 +7,39 @@ class Solver(object):
     m = maze.Maze()
     width = m.width
     height = m.height
-    start = point.Point(m.findstart(), 0)
-    goal = point.Point(m.findgoal(), height)
+    start = node.Node(m.findstart(),0)
+    goal = node.Node(m.findgoal(), -1)
+    knownNodes = []
+    borderRegion = []
 
     def __init__(self):
-        print(self.m.free(9))
-        print(self.indextopoint(27))
-        print(self.pointtoindex(11, 1))
         i = self.pointtoindex(13, 2)
-        print(self.m.free(i))
-        print(self.m.shouldbenode(i))
         self.solve(self.m)
 
     def solve(self, m):
-        print("hello there")
-        nodes = []
-        nodecounter = 0
-        currentindex = m.findstart()
-        direction = 2
-        while nodecounter < 1:
-            print("currently at: ", self.indextopoint(currentindex))
-            n = node.Node(currentindex, self.oppositedirection(direction))
-            nodes.append(n)
-            currentindex = self.moveUntilNewNode(currentindex, direction)
-            nodecounter = nodecounter + 1
 
-        print(nodes)
+        self.borderRegion.append(self.start)
 
-    def moveUntilNewNode(self, index: int, direction: int) -> int:
         while True:
-            print("moving into direction ", direction, " at point ", self.indextopoint(index))
+            if len(self.borderRegion) == 0:
+                print("error, no elements in the borderRegion")
+                exit()
+
+            n = self.pickNextNode()
+            self.expand(n)
+
+
+
+    def moveUntilNewNode(self, index: int, distance: int, direction: int) -> node.Node:
+        addeddistance = 0
+        while True:
+            if index < 0: return self.start
             index = self.movedirectional(index, direction)
+            addeddistance = addeddistance + 1
             if self.m.shouldbenode(index):
-                print("new node at index ", index)
-                return index
+                print("new node found at point ", self.indextopoint(index))
+                return node.Node(index, distance + addeddistance)
+
 
     moveup = lambda self, index: index - self.width
     movedown = lambda self, index: index + self.width
@@ -73,5 +72,33 @@ class Solver(object):
     def pointtoindex(self, x: int, y: int) -> int:
         return y * self.width + x
 
+
+
+    def expand(self, n: node):
+        print(f"expanding node at {self.indextopoint(n.position)}")
+        index = n.position
+        directions = self.m.getavailabledirections(index)
+        for direction in directions:
+            n1 = self.moveUntilNewNode(index,n.distance,direction)
+            if self.nodeIsUnknown(n1):
+                if n1.__eq__(self.goal):
+                    x = n1.distance
+                    self.goal.distance = x
+
+                    print("whoop whoop")
+                    print(f"known nodes: {self.knownNodes}")
+                    print(f"border region: {self.borderRegion}")
+
+                    exit()
+                self.borderRegion.append(n1)
+
+
+    def pickNextNode(self):
+        n= self.borderRegion.pop(-1)
+        self.knownNodes.append(n)
+        return n
+
+    def nodeIsUnknown(self, n: node):
+        return not self.borderRegion.__contains__(n) and not self.knownNodes.__contains__(n)
 
 s1 = Solver()

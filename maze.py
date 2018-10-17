@@ -71,8 +71,9 @@ class Maze:
         return index + 1
 
     def shouldbenode(self, i: int) -> bool:
-        return (self.free(self.moveleft(i)) or self.free(self.moveright(i))) and (
-                self.free(self.moveup(i)) or self.free(self.movedown(i))) and self.free(i)
+        directions = self.getavailabledirections(i)
+        return len(directions) == 1 or sum(directions)% 2 != 0 or len(directions) > 2
+
 
     def getavailabledirections(self, index: int):
         directions = []
@@ -82,8 +83,7 @@ class Maze:
             directions.append(1)
         if self.free(self.movedown(index)):
             directions.append(2)
-        if self.free(self.movedown(index)):
+        if self.free(self.moveleft(index)):
             directions.append(3)
-        return directions
 
-    def determinenewdirection(self, index: int):
+        return directions
