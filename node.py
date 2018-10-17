@@ -5,9 +5,10 @@
 
 
 class Node:
-    def __init__(self, position: int, distance: int):
+    def __init__(self, position: int, distance: int, previous):
         self.position = position
         self.distance = distance
+        self.previous = previous
 
     def __str__(self):
         return f"[Node at :{self.position}, distance: {self.distance}]"
@@ -20,3 +21,10 @@ class Node:
             return self.position == other.position
         else:
             return False
+"""
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.previous
+"""

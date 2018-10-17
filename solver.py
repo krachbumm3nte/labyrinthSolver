@@ -4,14 +4,17 @@ import node
 
 
 # a class that implements the main functionality of iterating through a maze, until the exit is found
+
+
+
 class Solver(object):
 
     def __init__(self):
         self.m = maze.Maze()
         self.width = self.m.width
         self.height = self.m.height
-        self.start = node.Node(self.m.findstart(), 0)
-        self.goal = node.Node(self.m.findgoal(), -1)
+        self.start = node.Node(self.m.findstart(), 0, None)
+        self.goal = node.Node(self.m.findgoal(), -1, None)
         self.knownNodes = []
         self.borderRegion = []
 
@@ -29,8 +32,9 @@ class Solver(object):
             n = self.pickNextNode()
             self.expand(n)
 
-    def moveuntilnewnode(self, index: int, distance: int, direction: int) -> node.Node:
+    def moveuntilnewnode(self, n: node.Node, distance: int, direction: int) -> node.Node:
         addeddistance = 0
+        index = n.position
         while True:
             if index < 0:
                 return self.start
@@ -38,7 +42,7 @@ class Solver(object):
             addeddistance = addeddistance + 1
             if self.m.shouldbenode(index):
                 print("new node found at point ", self.indextopoint(index))
-                return node.Node(index, distance + addeddistance)
+                return node.Node(index, distance + addeddistance, n)
 
     def moveup(self, index) -> int:
         return index - self.width
@@ -83,26 +87,41 @@ class Solver(object):
         index = n.position
         directions = self.m.getavailabledirections(index)
         for direction in directions:
-            n1 = self.moveuntilnewnode(index, n.distance, direction)
+            n1 = self.moveuntilnewnode(n, n.distance, direction)
             if self.nodeIsUnknown(n1):
                 if n1.__eq__(self.goal):
-                    x = n1.distance
-                    self.goal.distance = x
+                    self.goal = n1
 
                     print("whoop whoop")
                     print(f"known nodes: {self.knownNodes}")
                     print(f"border region: {self.borderRegion}")
-
+                    print(self.retracepath(n))
+                    print("hello")
                     exit()
                 self.borderRegion.append(n1)
 
+    # choses wich node to expand next (only depth-first so far)
     def pickNextNode(self):
         n = self.borderRegion.pop(-1)
         self.knownNodes.append(n)
         return n
 
+    # determines if a maze has not been discovered yet
     def nodeIsUnknown(self, n: node):
         return not self.borderRegion.__contains__(n) and not self.knownNodes.__contains__(n)
+
+    def retracepath(self, n: node.Node):
+        return self.listPreviousNodes(n)
+
+    def listPreviousNodes(self, n: node.Node) -> list:
+        nodes = []
+        nodes.append(n)
+        n = n.previous
+        while n.previous is not None:
+            nodes.append(n)
+            n = n.previous
+        return nodes
+
 
 
 s1 = Solver()
