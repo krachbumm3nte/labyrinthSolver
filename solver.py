@@ -30,7 +30,7 @@ class Solver(object):
                 exit()
 
             n = self.pickNextNode()
-            self.expand(n)
+            self.expand(n, self.explorenewnodes)
 
     def moveuntilnewnode(self, n: node.Node, distance: int, direction: int) -> node.Node:
         addeddistance = 0
@@ -82,23 +82,31 @@ class Solver(object):
     def indextopoint(self, i: int) -> point:
         return point.Point(i % self.width, int(i / self.height))
 
-    def expand(self, n: node):
+    def expand(self, n: node, func):
         print(f"expanding node at {self.indextopoint(n.position)}")
         index = n.position
         directions = self.m.getavailabledirections(index)
         for direction in directions:
             n1 = self.moveuntilnewnode(n, n.distance, direction)
-            if self.nodeIsUnknown(n1):
-                if n1.__eq__(self.goal):
-                    self.goal = n1
+            func(n1)
 
-                    print("whoop whoop")
-                    print(f"known nodes: {self.knownNodes}")
-                    print(f"border region: {self.borderRegion}")
-                    print(self.retracepath(n))
-                    print("hello")
-                    exit()
-                self.borderRegion.append(n1)
+
+
+    add = lambda x, y: x + y
+
+    def explorenewnodes(self, node):
+        if self.nodeIsUnknown(node):
+            if node.__eq__(self.goal):
+                self.goal = node
+
+                print("whoop whoop")
+                print(f"known nodes: {self.knownNodes}")
+                print(f"border region: {self.borderRegion}")
+                self.printNodes(self.retracepath(node))
+                print("hello")
+                exit()
+            self.borderRegion.append(node)
+            self.expand(node, self.explorenewnodes)
 
     # choses wich node to expand next (only depth-first so far)
     def pickNextNode(self):
@@ -122,6 +130,13 @@ class Solver(object):
             n = n.previous
         return nodes
 
+
+    def printNodes(self, list):
+        for n in list:
+            s = 'N:({}),D:({})'.format(self.indextopoint(n.position), n.distance)
+            print(s)
+            n = s
+        print(list)
 
 
 s1 = Solver()

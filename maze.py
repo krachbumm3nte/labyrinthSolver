@@ -7,7 +7,7 @@ class Maze:
     # initializes the maze, setting variables and decoding the input image to a list of rgb values
     def __init__(self):
 
-        image = Image.open('simplemaze.png', 'r')
+        image = Image.open('intermediatemaze.png', 'r')
 
         self.pixels = list(image.getdata())
 
