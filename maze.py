@@ -1,18 +1,17 @@
 from PIL import Image
-import point
 
 # a class to represent a maze that was generated from a .png image
 class Maze:
 
     # initializes the maze, setting variables and decoding the input image to a list of rgb values
-    def __init__(self):
+    def __init__(self, image):
 
-        image = Image.open('intermediatemaze.png', 'r')
+        self.image = Image.open(image, 'r')
+        self.outputimage = self.image.load()
+        self.pixels = self.image.getdata()
 
-        self.pixels = list(image.getdata())
-
-        self.width = image.width
-        self.height = image.height
+        self.width = self.image.width
+        self.height = self.image.height
         print("maze of size: ", self.width, "x", self.height)
 
         # determining validity of the maze
@@ -30,7 +29,7 @@ class Maze:
 
     # transforms an index on the array to a coordinate point
     def indextopoint(self, i):
-        return point.Point(i % self.width, int(i / self.height))
+        return i % self.width, int(i / self.height)
 
     # checks validity of the maze
     def isvalid(self):
@@ -62,34 +61,3 @@ class Maze:
             if self.free(i):
                 print("goal at {}".format(self.indextopoint(i)))
                 return i
-
-    def moveup(self, index: int) -> int:
-        return index - self.width
-
-    def movedown(self, index: int) -> int:
-        return index + self.width
-
-    def moveleft(self, index: int) -> int:
-        return index - 1
-
-    def moveright(self, index: int) -> int:
-        return index + 1
-
-    # determins if a node should be created at index i
-    def shouldbenode(self, i: int) -> bool:
-        directions = self.getavailabledirections(i)
-        return len(directions) == 1 or sum(directions) % 2 != 0 or len(directions) > 2
-
-    # returns all of the directions available at index
-    def getavailabledirections(self, index: int):
-        directions = []
-        if self.free(self.moveup(index)):
-            directions.append(0)
-        if self.free(self.moveright(index)):
-            directions.append(1)
-        if self.free(self.movedown(index)):
-            directions.append(2)
-        if self.free(self.moveleft(index)):
-            directions.append(3)
-
-        return directions

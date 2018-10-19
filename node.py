@@ -21,6 +21,9 @@ class Node:
             return self.position == other.position
         else:
             return False
+
+    def __lt__(self, other):
+        return self.distance < other.distance
 """
     def __iter__(self):
         return self

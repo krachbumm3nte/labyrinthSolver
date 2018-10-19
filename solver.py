@@ -1,118 +1,68 @@
 import maze
-import point
 import node
+from mazecrawler import Mazecrawler
 
 
 # a class that implements the main functionality of iterating through a maze, until the exit is found
 
 
+class Solver:
 
-class Solver(object):
-
-    def __init__(self):
-        self.m = maze.Maze()
-        self.width = self.m.width
-        self.height = self.m.height
+    def __init__(self, args):
+        self.algorithm = args[0]
+        self.m = maze.Maze(args[1])
         self.start = node.Node(self.m.findstart(), 0, None)
         self.goal = node.Node(self.m.findgoal(), -1, None)
         self.knownNodes = []
         self.borderRegion = []
+        self.popindex = 0
+        self.determinealgorithm()
+        self.crawler = None
 
         self.solve()
 
     def solve(self):
-
+        self.crawler = Mazecrawler(self.m)
+        print("starting solving-algorithm...")
         self.borderRegion.append(self.start)
-
         while True:
             if len(self.borderRegion) == 0:
                 print("error, no elements in the borderRegion")
                 exit()
-
             n = self.pickNextNode()
-            self.expand(n, self.explorenewnodes)
+            self.crawler.expandnode(n, self.explorenewnodes)
 
-    def moveuntilnewnode(self, n: node.Node, distance: int, direction: int) -> node.Node:
-        addeddistance = 0
-        index = n.position
-        while True:
-            if index < 0:
-                return self.start
-            index = self.movedirectional(index, direction)
-            addeddistance = addeddistance + 1
-            if self.m.shouldbenode(index):
-                print("new node found at point ", self.indextopoint(index))
-                return node.Node(index, distance + addeddistance, n)
-
-    def moveup(self, index) -> int:
-        return index - self.width
-
-    def movedown(self, index) -> int:
-        return index + self.width
-
-    def moveleft(self, index) -> int:
-        return index - 1
-
-    def moveright(self, index) -> int:
-        return index + 1
-
-    def nextdirection(self, direction) -> int:
-        return (direction + 1) % 4
-
-    def oppositedirection(self, direction) -> int:
-        return (direction + 2) % 4
-
-    def previousdirection(self, direction: int) -> int:
-        newdir = direction - 1
-        return 3 if newdir < 0 else newdir
-
-    def movedirectional(self, i: int, direction) -> int:
-        if direction == 0:
-            return self.moveup(i)
-
-        elif direction == 1:
-            return self.moveright(i)
-
-        elif direction == 2:
-            return self.movedown(i)
-
-        elif direction == 3:
-            return self.moveleft(i)
-
-    def indextopoint(self, i: int) -> point:
-        return point.Point(i % self.width, int(i / self.height))
-
-    def expand(self, n: node, func):
-        print(f"expanding node at {self.indextopoint(n.position)}")
-        index = n.position
-        directions = self.m.getavailabledirections(index)
-        for direction in directions:
-            n1 = self.moveuntilnewnode(n, n.distance, direction)
-            func(n1)
-
-
-
-    add = lambda x, y: x + y
+    def indextopoint(self, i: int) -> tuple:
+        return i % self.m.width, int(i / self.m.height)
 
     def explorenewnodes(self, node):
         if self.nodeIsUnknown(node):
             if node.__eq__(self.goal):
-                self.goal = node
-
-                print("whoop whoop")
-                print(f"known nodes: {self.knownNodes}")
-                print(f"border region: {self.borderRegion}")
-                self.printNodes(self.retracepath(node))
-                print("hello")
-                exit()
+                self.success(node)
             self.borderRegion.append(node)
-            self.expand(node, self.explorenewnodes)
+        # else :
+            # self.cascadenodedistance(node)
 
     # choses wich node to expand next (only depth-first so far)
     def pickNextNode(self):
-        n = self.borderRegion.pop(-1)
+        if self.algorithm == '-dj':
+            self.borderRegion.sort()
+
+        n = self.borderRegion.pop(self.popindex)
         self.knownNodes.append(n)
         return n
+
+    def success(self, node):
+        self.goal = node
+
+        print("traversal complete!")
+        print(f"total nodes visited: {len(self.borderRegion) + len(self.knownNodes)}")
+        print(f"total pathlength: {self.goal.distance}")
+        self.prepareoutput(node)
+
+        exit()
+
+        self.borderRegion.append(node)
 
     # determines if a maze has not been discovered yet
     def nodeIsUnknown(self, n: node):
@@ -130,13 +80,65 @@ class Solver(object):
             n = n.previous
         return nodes
 
-
     def printNodes(self, list):
         for n in list:
             s = 'N:({}),D:({})'.format(self.indextopoint(n.position), n.distance)
             print(s)
             n = s
-        print(list)
+
+    def imprintpath(self, node: node.Node):
+        list = self.listPreviousNodes(node)
+        for node in list:
+            n1 = node.previous
+            p1 = node.position
+            p2 = n1.position
+            if ((p1 - p2) / self.m.width).is_integer():
+                for i in range(p1, p2, -self.m.width if p1 > p2 else self.m.width):
+                    self.m.outputimage[self.indextopoint(i)] = (255, 0, 0)
+            else:
+                for i in range(p1, p2, -1 if p1 > p2 else 1):
+                    self.m.outputimage[self.indextopoint(i)] = (255, 0, 0)
+
+    '''
+    paints all of the known nodes to the output-image
+    known nodes are blue
+    completely explored nodes are green
+    start and goal are yellow
+    '''
+
+    def paintexplorednodes(self):
+        for n in self.knownNodes:
+            self.m.outputimage[self.indextopoint(n.position)] = (0, 255, 0)
+        for n in self.borderRegion:
+            self.m.outputimage[self.indextopoint(n.position)] = (0, 0, 255)
+        self.m.outputimage[self.indextopoint(self.start.position)] = (255, 255, 0)
+        self.m.outputimage[self.indextopoint(self.goal.position)] = (255, 255, 0)
+
+    def determinealgorithm(self):
+        if self.algorithm == '-dj':
+            print("solving by dijkstra-algorithm...")
+        elif self.algorithm == '-df':
+            self.popindex = -1
+            print("solving depth-first...")
+        elif self.algorithm == '-bf':
+            print("solving bredth-first...")
+
+    def prepareoutput(self, node):
+        self.crawler.expandnode(node, self.imprintpath)
+        self.paintexplorednodes()
+        self.m.image.save('solution.png')
 
 
-s1 = Solver()
+    #TODO: proper node distance cascading
+    def cascadenodedistance(self, node: node.Node):
+         if self.replaceifshorter(node, self.borderRegion) or self.replaceifshorter(node, self.knownNodes):
+             self.crawler.expandnode(node, self.cascadenodedistance)
+
+    def replaceifshorter(self, node, nodelist: list):
+        if node.distance < nodelist.distance:
+            nodelist[node.position] = node
+            return True
+        return False
+
+
+s1 = Solver(("-df", "intermediatemaze.png"))
