@@ -24,10 +24,3 @@ class Node:
 
     def __lt__(self, other):
         return self.distance < other.distance
-"""
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.previous
-"""

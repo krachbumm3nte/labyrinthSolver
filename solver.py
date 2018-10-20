@@ -1,6 +1,7 @@
 import maze
 import node
 from mazecrawler import Mazecrawler
+import timeit
 
 
 # a class that implements the main functionality of iterating through a maze, until the exit is found
@@ -18,12 +19,13 @@ class Solver:
         self.popindex = 0
         self.determinealgorithm()
         self.crawler = None
-
+        self.starttime = 0
         self.solve()
 
     def solve(self):
         self.crawler = Mazecrawler(self.m)
         print("starting solving-algorithm...")
+        self.starttime = timeit.default_timer()
         self.borderRegion.append(self.start)
         while True:
             if len(self.borderRegion) == 0:
@@ -40,10 +42,10 @@ class Solver:
             if node.__eq__(self.goal):
                 self.success(node)
             self.borderRegion.append(node)
-        # else :
-            # self.cascadenodedistance(node)
+        #else :
+            #self.cascadenodedistance(node)
 
-    # choses wich node to expand next (only depth-first so far)
+    # choses wich node to expand next
     def pickNextNode(self):
         if self.algorithm == '-dj':
             self.borderRegion.sort()
@@ -54,10 +56,11 @@ class Solver:
 
     def success(self, node):
         self.goal = node
-
+        time = timeit.default_timer() - self.starttime
         print("traversal complete!")
         print(f"total nodes visited: {len(self.borderRegion) + len(self.knownNodes)}")
         print(f"total pathlength: {self.goal.distance}")
+        print(f"total duration: {time}")
         self.prepareoutput(node)
 
         exit()
@@ -122,6 +125,9 @@ class Solver:
             print("solving depth-first...")
         elif self.algorithm == '-bf':
             print("solving bredth-first...")
+        else:
+            print("invalid algorithm: pick between dijkstra (-dj), breadth-first (-bf) or depth-first (-df)")
+            exit()
 
     def prepareoutput(self, node):
         self.crawler.expandnode(node, self.imprintpath)
@@ -131,14 +137,17 @@ class Solver:
 
     #TODO: proper node distance cascading
     def cascadenodedistance(self, node: node.Node):
-         if self.replaceifshorter(node, self.borderRegion) or self.replaceifshorter(node, self.knownNodes):
-             self.crawler.expandnode(node, self.cascadenodedistance)
+        if self.replaceifshorter(node, self.borderRegion) or self.replaceifshorter(node, self.knownNodes):
+            self.crawler.expandnode(node, self.cascadenodedistance)
 
     def replaceifshorter(self, node, nodelist: list):
-        if node.distance < nodelist.distance:
-            nodelist[node.position] = node
-            return True
-        return False
+        print("replacing if shorter")
+        for n1 in nodelist:
+            if n1 == node:
+                if node.distance < n1.distance:
+                    nodelist[n1.position] = node
+                    return True
+                return False
 
 
-s1 = Solver(("-df", "intermediatemaze.png"))
+s1 = Solver(("-df", "128x128.png"))
