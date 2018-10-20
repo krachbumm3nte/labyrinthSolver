@@ -2,6 +2,7 @@ import maze
 import node
 from mazecrawler import Mazecrawler
 import timeit
+import bisect
 
 
 # a class that implements the main functionality of iterating through a maze, until the exit is found
@@ -27,6 +28,9 @@ class Solver:
         print("starting solving-algorithm...")
         self.starttime = timeit.default_timer()
         self.borderRegion.append(self.start)
+        if self.algorithm == '-dj':
+            self.borderRegion.sort()
+
         while True:
             if len(self.borderRegion) == 0:
                 print("error, no elements in the borderRegion")
@@ -47,11 +51,11 @@ class Solver:
 
     # choses wich node to expand next
     def pickNextNode(self):
-        if self.algorithm == '-dj':
-            self.borderRegion.sort()
-
         n = self.borderRegion.pop(self.popindex)
-        self.knownNodes.append(n)
+        if self.algorithm == 'dj':
+            bisect.insort_left(self.knownNodes, n)
+        else:
+            self.knownNodes.append(n)
         return n
 
     def success(self, node):
@@ -59,7 +63,7 @@ class Solver:
         time = timeit.default_timer() - self.starttime
         print("traversal complete!")
         print(f"total nodes visited: {len(self.borderRegion) + len(self.knownNodes)}")
-        print(f"total pathlength: {self.goal.distance}")
+        print(f"total pathlength: {self.goal.distance} seconds")
         print(f"total duration: {time}")
         self.prepareoutput(node)
 
@@ -150,4 +154,4 @@ class Solver:
                 return False
 
 
-s1 = Solver(("-df", "128x128.png"))
+s1 = Solver(("-df", "./resources/braid200.png"))
