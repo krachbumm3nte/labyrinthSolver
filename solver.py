@@ -10,17 +10,19 @@ import bisect
 
 class Solver:
 
-    def __init__(self, args):
+    def __init__(self, args: list):
         self.algorithm = args[0]
         self.m = maze.Maze(args[1])
-        self.start = node.Node(self.m.findstart(), 0, None)
-        self.goal = node.Node(self.m.findgoal(), -1, None)
+        self.start = node.Node(self.m.getstart(), 0, None)
+        self.goal = node.Node(self.m.getgoal(), -1, None)
         self.knownNodes = []
         self.borderRegion = []
         self.popindex = 0
         self.determinealgorithm()
         self.crawler = None
         self.starttime = 0
+        self.updateoutput = args.__contains__("-u")
+        self.updateinteval = 8
         self.solve()
 
     def solve(self):
@@ -30,8 +32,15 @@ class Solver:
         self.borderRegion.append(self.start)
         if self.algorithm == '-dj':
             self.borderRegion.sort()
+        updatecounter = 0
 
         while True:
+            updatecounter = updatecounter +1
+            if updatecounter == 10:
+                updatecounter = 0
+                #self.prepareoutput(n)
+
+
             if len(self.borderRegion) == 0:
                 print("error, no elements in the borderRegion")
                 exit()
@@ -46,6 +55,7 @@ class Solver:
             if node.__eq__(self.goal):
                 self.success(node)
             self.borderRegion.append(node)
+            self.borderRegion.sort()
         #else :
             #self.cascadenodedistance(node)
 
@@ -63,8 +73,8 @@ class Solver:
         time = timeit.default_timer() - self.starttime
         print("traversal complete!")
         print(f"total nodes visited: {len(self.borderRegion) + len(self.knownNodes)}")
-        print(f"total pathlength: {self.goal.distance} seconds")
-        print(f"total duration: {time}")
+        print(f"total pathlength: {self.goal.distance}")
+        print(f"total duration: {time}  seconds")
         self.prepareoutput(node)
 
         exit()
@@ -100,10 +110,10 @@ class Solver:
             p1 = node.position
             p2 = n1.position
             if ((p1 - p2) / self.m.width).is_integer():
-                for i in range(p1, p2, -self.m.width if p1 > p2 else self.m.width):
+                for i in range(min(p1, p2), max(p1, p2), self.m.width):
                     self.m.outputimage[self.indextopoint(i)] = (255, 0, 0)
             else:
-                for i in range(p1, p2, -1 if p1 > p2 else 1):
+                for i in range(min(p1, p2), max(p1,p2)):
                     self.m.outputimage[self.indextopoint(i)] = (255, 0, 0)
 
     '''
@@ -133,8 +143,8 @@ class Solver:
             print("invalid algorithm: pick between dijkstra (-dj), breadth-first (-bf) or depth-first (-df)")
             exit()
 
-    def prepareoutput(self, node):
-        self.crawler.expandnode(node, self.imprintpath)
+    def prepareoutput(self, startnode):
+        self.crawler.expandnode(startnode, self.imprintpath)
         self.paintexplorednodes()
         self.m.image.save('solution.png')
 
@@ -154,4 +164,4 @@ class Solver:
                 return False
 
 
-s1 = Solver(("-df", "./resources/braid200.png"))
+s1 = Solver(["-bf", "./resources/braid200.png", "-u"])

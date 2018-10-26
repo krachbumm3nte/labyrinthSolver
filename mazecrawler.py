@@ -11,7 +11,7 @@ class Mazecrawler:
         index = n.position
         while True:
             if index < 0:
-                return Node(self.m.findstart(), 0, None)
+                return Node(self.m.getstart(), 0, None)
             index = self.movedirectional(index, direction)
             addeddistance = addeddistance + 1
             if self.shouldbenode(index):
